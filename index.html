@@ -3,14 +3,328 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Trái Tim Từ Ảnh</title>
+  <title>Trái Tim Từ 28 Ảnh</title>
   <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="./style/style.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Pacifico', cursive;
+    }
+    body {
+      background: black;
+      overflow: hidden;
+      touch-action: none; /* Ngăn chặn scroll trên mobile khi tương tác */
+    }
+    .container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      perspective: 1000px;
+      z-index: 2;
+    }
+    .photo {
+      position: absolute;
+      width: 80px;
+      height: 80px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px hotpink;
+      object-fit: cover;
+      opacity: 0;
+      transform: scale(0.5);
+      transition: all 0.6s ease;
+      user-select: none;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+    }
+    .photo.show {
+      opacity: 1;
+      transform: scale(1);
+    }
+    .photo:hover {
+      transform: scale(1.2);
+      z-index: 9999;
+      box-shadow: 0 0 20px white;
+    }
+    .stars {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .star {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      background: white;
+      border-radius: 50%;
+      animation: twinkle 2s infinite ease-in-out;
+      opacity: 0.8;
+    }
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 1; }
+    }
+    .shooting-star {
+      position: absolute;
+      width: 100px;
+      height: 2px;
+      background: linear-gradient(90deg, white, transparent);
+      animation: shoot 1s linear forwards;
+      z-index: 1;
+    }
+    @keyframes shoot {
+      from {
+        transform: translate(0, 0) rotate(45deg);
+        opacity: 1;
+      }
+      to {
+        transform: translate(500px, 500px) rotate(45deg);
+        opacity: 0;
+      }
+    }
+    .star-burst {
+      position: absolute;
+      width: 5px;
+      height: 5px;
+      background: white;
+      border-radius: 50%;
+      opacity: 0.8;
+      animation: burst 800ms ease-out forwards;
+      pointer-events: none;
+    }
+    @keyframes burst {
+      0% { transform: scale(1); opacity: 1; }
+      100% { transform: translate(var(--dx), var(--dy)) scale(0.5); opacity: 0; }
+    }
+
+    #messageContainer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .falling-message {
+      position: absolute;
+      white-space: nowrap;
+      font-weight: bold;
+      background: linear-gradient(45deg, #ff00ff, #00ffff, #ffff00, #ff00ff);
+      background-size: 300% 300%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: fallMessage linear forwards, sparkleColor 4s infinite linear, glow 2s infinite alternate;
+      text-shadow: 0 0 5px #fff, 0 0 10px hotpink, 0 0 15px cyan;
+      opacity: 0.9;
+    }
+
+    @keyframes sparkleColor {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    @keyframes glow {
+      0% { text-shadow: 0 0 5px #fff, 0 0 10px hotpink, 0 0 15px cyan; }
+      100% { text-shadow: 0 0 10px yellow, 0 0 20px deeppink, 0 0 30px lightblue; }
+    }
+
+    @keyframes fallMessage {
+      0% { transform: translateY(-50px); opacity: 0; }
+      10% { opacity: 1; }
+      80% { opacity: 1; }
+      95% { opacity: 0.5; }
+      100% { transform: translateY(100vh); opacity: 0; }
+    }
+
+    @media (max-width: 600px) {
+      .photo {
+        width: 50px; /* Nhỏ hơn một chút để vừa 28 ảnh trên màn hình dọc */
+        height: 50px;
+      }
+    }
+  </style>
 </head>
 <body>
   <div class="stars" id="starField"></div>
   <div class="container" id="heartContainer"></div>
   <div id="messageContainer"></div>
-  <script src="./style/script.js"></script>
+
+  <script>
+    // 1. Khởi tạo danh sách 28 ảnh
+    const imgUrls = [];
+    for (let i = 1; i <= 28; i++) {
+      // Giả định ảnh nằm trong thư mục tương ứng của bạn
+      imgUrls.push(`./style/image/Anh (${i}).jpg`);
+    }
+
+    const messages = [
+      'I Love You ❤️',
+      'My Love 🎁',
+      'Kudo Rinne 🥰',
+      'Matsumoto Reiyo 🍀',
+      '松本麗世 ✨',
+      'Mãi yêu em ❤️',
+      'Always with you 💖'
+    ];
+
+    function showFallingMessage() {
+      const container = document.getElementById('messageContainer');
+      const count = Math.floor(Math.random() * 3) + 2;
+      for (let i = 0; i < count; i++) {
+        const msg = document.createElement('div');
+        msg.className = 'falling-message';
+        msg.textContent = messages[Math.floor(Math.random() * messages.length)];
+        const left = Math.random() * 80 + 5;
+        const duration = Math.random() * 3 + 3;
+        const fontSize = Math.random() * 8 + 14;
+        msg.style.left = `${left}%`;
+        msg.style.top = `-50px`;
+        msg.style.animationDuration = `${duration}s`;
+        msg.style.fontSize = `${fontSize}px`;
+        container.appendChild(msg);
+        setTimeout(() => msg.remove(), duration * 1000 + 1000);
+      }
+    }
+
+    const isMobile = window.innerWidth < 600;
+    let scale = isMobile ? 10 : 18;
+    const imgSize = isMobile ? 50 : 80;
+    const delay = 150; // Giảm delay một chút để hiện nhanh hơn
+    const heartPoints = [];
+
+    // Tính toán 28 điểm trên hình trái tim
+    const totalPhotos = 28;
+    for (let i = 0; i < totalPhotos; i++) {
+      const t = (i / totalPhotos) * 2 * Math.PI;
+      // Công thức toán học cho hình trái tim
+      const x = 16 * Math.pow(Math.sin(t), 3);
+      const y = 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t);
+      heartPoints.push({ x, y });
+    }
+
+    const container = document.getElementById('heartContainer');
+    const heartGroup = document.createElement('div');
+    heartGroup.style.transformStyle = 'preserve-3d';
+    heartGroup.style.position = 'absolute';
+    heartGroup.style.top = '50%';
+    heartGroup.style.left = '50%';
+    heartGroup.style.transform = 'translate(-50%, -50%)';
+    container.appendChild(heartGroup);
+
+    // Render ảnh lên các điểm đã tính
+    heartPoints.forEach((point, i) => {
+      setTimeout(() => {
+        const img = document.createElement('img');
+        img.src = imgUrls[i];
+        img.className = 'photo';
+        img.dataset.index = i;
+        // Đặt vị trí ảnh sao cho tâm ảnh nằm đúng điểm point
+        img.style.left = `calc(50% + ${point.x * scale}px - ${imgSize / 2}px)`;
+        img.style.top = `calc(50% - ${point.y * scale}px - ${imgSize / 2}px)`;
+        heartGroup.appendChild(img);
+        setTimeout(() => img.classList.add('show'), 10);
+      }, i * delay);
+    });
+
+    const totalAnimTime = heartPoints.length * delay;
+    setTimeout(() => {
+      setInterval(showFallingMessage, 3000);
+    }, totalAnimTime + 500);
+
+    // Xử lý xoay 3D (Chuột & Cảm ứng)
+    let rotateX = 0;
+    let rotateY = 0;
+    let isDragging = false;
+    let lastX, lastY;
+
+    const startInteraction = (x, y) => {
+      isDragging = true;
+      lastX = x;
+      lastY = y;
+    };
+
+    const moveInteraction = (x, y) => {
+      if (!isDragging) return;
+      const dx = x - lastX;
+      const dy = y - lastY;
+      lastX = x;
+      lastY = y;
+      rotateY += dx * 0.3;
+      rotateX -= dy * 0.3;
+      updateTransform();
+    };
+
+    container.addEventListener('mousedown', (e) => startInteraction(e.clientX, e.clientY));
+    window.addEventListener('mouseup', () => isDragging = false);
+    window.addEventListener('mousemove', (e) => moveInteraction(e.clientX, e.clientY));
+
+    container.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 1) startInteraction(e.touches[0].clientX, e.touches[0].clientY);
+    });
+    window.addEventListener('touchend', () => isDragging = false);
+    window.addEventListener('touchmove', (e) => {
+      if (e.touches.length === 1) moveInteraction(e.touches[0].clientX, e.touches[0].clientY);
+    });
+
+    function updateTransform() {
+      heartGroup.style.transform = `translate(-50%, -50%) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+    }
+
+    // Hiệu ứng ngôi sao
+    function createStars(count = 150) {
+      const starField = document.getElementById('starField');
+      for (let i = 0; i < count; i++) {
+        const star = document.createElement('div');
+        star.className = 'star';
+        star.style.top = `${Math.random() * 100}%`;
+        star.style.left = `${Math.random() * 100}%`;
+        star.style.animationDuration = `${Math.random() * 3 + 2}s`;
+        starField.appendChild(star);
+      }
+    }
+
+    function createShootingStar() {
+      const starField = document.getElementById('starField');
+      const shootingStar = document.createElement('div');
+      shootingStar.className = 'shooting-star';
+      shootingStar.style.top = `${Math.random() * window.innerHeight}px`;
+      shootingStar.style.left = `${Math.random() * window.innerWidth / 2}px`;
+      starField.appendChild(shootingStar);
+      setTimeout(() => shootingStar.remove(), 1000);
+    }
+
+    function createStarBurst(x, y) {
+      const count = 12;
+      const starField = document.getElementById('starField');
+      for (let i = 0; i < count; i++) {
+        const star = document.createElement('div');
+        star.className = 'star-burst';
+        star.style.left = `${x}px`;
+        star.style.top = `${y}px`;
+        const angle = Math.random() * 2 * Math.PI;
+        const distance = Math.random() * 150 + 50;
+        const dx = Math.cos(angle) * distance;
+        const dy = Math.sin(angle) * distance;
+        star.style.setProperty('--dx', `${dx}px`);
+        star.style.setProperty('--dy', `${dy}px`);
+        starField.appendChild(star);
+        setTimeout(() => star.remove(), 800);
+      }
+    }
+
+    window.onload = () => {
+      createStars();
+      setInterval(() => {
+        if (Math.random() < 0.4) createShootingStar();
+      }, 800);
+    };
+
+    document.addEventListener('click', (e) => createStarBurst(e.clientX, e.clientY));
+  </script>
 </body>
 </html>
