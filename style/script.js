@@ -1,5 +1,5 @@
 const imgUrls = [];
-for (let i = 1; i <= 20; i++) {
+for (let i = 1; i <= 29; i++) {
   imgUrls.push(`./style/image/Anh (${i}).jpg`);
 }
 
@@ -166,4 +166,5 @@ document.addEventListener('touchstart', (e) => {
   if (e.touches.length === 1) {
     createStarBurst(e.touches[0].clientX, e.touches[0].clientY);
   }
+
 });
